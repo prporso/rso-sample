@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: image-catalog-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: image-catalog
+  template:
+    metadata:
+      labels:
+        app: image-catalog
+    spec:
+      containers:
+        - image: prporso/image-catalog:test #to be changed
+          name: image-catalog
+          env:
+            - name: KUMULUZEE_DATASOURCES0_CONNECTIONURL
+              value: #connection url
+            - name: KUMULUZEE_DATASOURCES0_USERNAME
+              value: #username
+            - name: KUMULUZEE_DATASOURCES0_PASSWORD
+              value: #password
+          ports:
+            - containerPort: 8080
+              name: server
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: image-catalog
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: server
+  selector:
+    app: image-catalog
