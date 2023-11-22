@@ -29,6 +29,8 @@
         <postgresql.version>42.6.0</postgresql.version>
         <kumuluzee-health.version>2.4.4</kumuluzee-health.version>
         <kumuluzee-metrics.version>3.0.0</kumuluzee-metrics.version>
+        <kumuluzee-logs.version>1.4.6</kumuluzee-logs.version>
+
     </properties>
 
     <dependencyManagement>
@@ -104,6 +106,13 @@
                 <artifactId>image-catalog-lib</artifactId>
                 <version>${project.version}</version>
             </dependency>
+
+            <dependency>
+                <artifactId>kumuluzee-logs-log4j2</artifactId>
+                <groupId>com.kumuluz.ee.logs</groupId>
+                <version>${kumuluzee-logs.version}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 

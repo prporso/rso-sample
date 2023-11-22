@@ -1,5 +1,6 @@
 package si.fri.rso.samples.imagecatalog.api.v1.resources;
 
+import com.kumuluz.ee.logs.cdi.Log;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.headers.Header;
@@ -23,7 +24,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 
-
+@Log
 @ApplicationScoped
 @Path("/images")
 @Produces(MediaType.APPLICATION_JSON)

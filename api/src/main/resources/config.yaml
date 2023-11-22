@@ -21,6 +21,26 @@ kumuluzee:
     web-instrumentation:
       - name: images-endpoint
         url-pattern: /v1/images/*
+  logs:
+    config-file: '<?xml version="1.0" encoding="UTF-8"?>
+                            <Configuration name="comments">
+                                <Appenders>
+                                    <Console name="console" target="SYSTEM_OUT">
+                                        <PatternLayout pattern="%d %p %marker %m %X %ex %n"/>
+                                    </Console>
+                                    <Socket name="logstash" host="37e012f5c11-e21f01-4a1c31-91131b-191521e4816e514bb-ls.logit.io"
+                                    port="30014" protocol="udp">
+                                        <JSONLayout complete="false" compact="true" eventEol="true" charset="UTF-8" properties="true"/>
+                                    </Socket>
+                                </Appenders>
+                                <Loggers>
+                                    <!-- Default logger -->
+                                    <Root level="all">
+                                        <AppenderRef ref="console" level="info" />
+                                        <AppenderRef ref="logstash" level="trace" />
+                                    </Root>
+                                </Loggers>
+                            </Configuration>'
 rest-properties:
   broken: false
 
