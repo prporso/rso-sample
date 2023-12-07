@@ -12,6 +12,13 @@
     <artifactId>image-catalog-services</artifactId>
 
     <dependencies>
+
+
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-rekognition</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>com.kumuluz.ee.metrics</groupId>
             <artifactId>kumuluzee-metrics-core</artifactId>

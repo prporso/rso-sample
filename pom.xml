@@ -31,6 +31,8 @@
         <kumuluzee-metrics.version>3.0.0</kumuluzee-metrics.version>
         <kumuluzee-logs.version>1.4.6</kumuluzee-logs.version>
 
+        <aws-java-sdk.version>1.12.350</aws-java-sdk.version>
+
     </properties>
 
     <dependencyManagement>
@@ -111,6 +113,12 @@
                 <artifactId>kumuluzee-logs-log4j2</artifactId>
                 <groupId>com.kumuluz.ee.logs</groupId>
                 <version>${kumuluzee-logs.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.amazonaws</groupId>
+                <artifactId>aws-java-sdk-rekognition</artifactId>
+                <version>${aws-java-sdk.version}</version>
             </dependency>
 
         </dependencies>

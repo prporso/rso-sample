@@ -12,11 +12,24 @@ kumuluzee:
       connection-url: jdbc:postgresql://localhost:5432/image-metadata
       username: dbuser
       password: postgres
+      pool:
+        max-size: 4
+  dev:
+    scan-libraries:
+      - image-catalog-models
+      - image-catalog-services
+      - image-catalog-lib
+  openapi-mp:
+    ui:
+      specification-server: http://20.246.105.245:8080
   health:
     checks:
-      data-source-health-check:
+      #data-source-health-check:
+      #  type: liveness
+      #  jndi-name: jdbc/ImageMetadataDS
+      disk-space-health-check:
+        threshold: 100000000
         type: liveness
-        jndi-name: jdbc/ImageMetadataDS
   metrics:
     web-instrumentation:
       - name: images-endpoint
@@ -28,7 +41,7 @@ kumuluzee:
                                     <Console name="console" target="SYSTEM_OUT">
                                         <PatternLayout pattern="%d %p %marker %m %X %ex %n"/>
                                     </Console>
-                                    <Socket name="logstash" host="37e012f5c11-e21f01-4a1c31-91131b-191521e4816e514bb-ls.logit.io"
+                                    <Socket name="logstash" host="37e02f5c-e2f0-4ac3-913b-952e486e54bb-ls.logit.io"
                                     port="30014" protocol="udp">
                                         <JSONLayout complete="false" compact="true" eventEol="true" charset="UTF-8" properties="true"/>
                                     </Socket>
@@ -43,4 +56,8 @@ kumuluzee:
                             </Configuration>'
 rest-properties:
   broken: false
+app-properties:
+  amazon-rekognition:
+    access-key:
+    secret-key:
 

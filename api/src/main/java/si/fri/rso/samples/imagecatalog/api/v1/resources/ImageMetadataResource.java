@@ -10,8 +10,11 @@ import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+
 import si.fri.rso.samples.imagecatalog.lib.ImageMetadata;
 import si.fri.rso.samples.imagecatalog.services.beans.ImageMetadataBean;
+import si.fri.rso.samples.imagecatalog.api.v1.dtos.UploadImageResponse;
+import si.fri.rso.samples.imagecatalog.services.clients.AmazonRekognitionClient;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -20,8 +23,12 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 
 @Log
@@ -36,6 +43,8 @@ public class ImageMetadataResource {
     @Inject
     private ImageMetadataBean imageMetadataBean;
 
+    @Inject
+    private AmazonRekognitionClient amazonRekognitionClient;
 
     @Context
     protected UriInfo uriInfo;
@@ -154,6 +163,51 @@ public class ImageMetadataResource {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
     }
+
+
+
+    @POST
+    @Path("/upload")
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    public Response uploadImage(InputStream uploadedInputStream) {
+
+        String imageId = UUID.randomUUID().toString();
+        String imageLocation = UUID.randomUUID().toString();
+
+        byte[] bytes = new byte[0];
+        try (uploadedInputStream) {
+            bytes = uploadedInputStream.readAllBytes();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        UploadImageResponse uploadImageResponse = new UploadImageResponse();
+
+        Integer numberOfFaces = amazonRekognitionClient.countFaces(bytes);
+        uploadImageResponse.setNumberOfFaces(numberOfFaces);
+
+        if (numberOfFaces != 1) {
+            uploadImageResponse.setMessage("Image must contain one face.");
+            return Response.status(Response.Status.BAD_REQUEST).entity(uploadImageResponse).build();
+
+        }
+
+        List<String> detectedCelebrities = amazonRekognitionClient.checkForCelebrities(bytes);
+
+        if (!detectedCelebrities.isEmpty()) {
+            uploadImageResponse.setMessage("Image must not contain celebrities. Detected celebrities: "
+                    + detectedCelebrities.stream().collect(Collectors.joining(", ")));
+            return Response.status(Response.Status.BAD_REQUEST).entity(uploadImageResponse).build();
+        }
+
+        uploadImageResponse.setMessage("Success.");
+
+        // Upload image to storage
+
+
+        return Response.status(Response.Status.CREATED).entity(uploadImageResponse).build();
+    }
+
 
 
 
