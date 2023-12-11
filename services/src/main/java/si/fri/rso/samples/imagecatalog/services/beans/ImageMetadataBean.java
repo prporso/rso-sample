@@ -1,11 +1,19 @@
 package si.fri.rso.samples.imagecatalog.services.beans;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.UriInfo;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -13,6 +21,9 @@ import java.util.stream.Collectors;
 import com.kumuluz.ee.rest.beans.QueryParameters;
 import com.kumuluz.ee.rest.utils.JPAUtils;
 
+import org.eclipse.microprofile.faulttolerance.CircuitBreaker;
+import org.eclipse.microprofile.faulttolerance.Fallback;
+import org.eclipse.microprofile.faulttolerance.Timeout;
 import org.eclipse.microprofile.metrics.annotation.Timed;
 
 import si.fri.rso.samples.imagecatalog.lib.ImageMetadata;
@@ -28,6 +39,18 @@ public class ImageMetadataBean {
     @Inject
     private EntityManager em;
 
+    @Inject
+    private ImageMetadataBean imageMetadataBeanProxy;
+
+    private Client httpClient;
+    private String baseUrl;
+
+    @PostConstruct
+    private void init() {
+        httpClient = ClientBuilder.newClient();
+        baseUrl = "http://localhost:8081"; // only for demonstration
+    }
+
     public List<ImageMetadata> getImageMetadata() {
 
         TypedQuery<ImageMetadataEntity> query = em.createNamedQuery(
@@ -39,7 +62,7 @@ public class ImageMetadataBean {
 
     }
 
-    @Timed
+    //@Timed
     public List<ImageMetadata> getImageMetadataFilter(UriInfo uriInfo) {
 
         QueryParameters queryParameters = QueryParameters.query(uriInfo.getRequestUri().getQuery()).defaultOffset(0)
@@ -58,6 +81,8 @@ public class ImageMetadataBean {
         }
 
         ImageMetadata imageMetadata = ImageMetadataConverter.toDto(imageMetadataEntity);
+
+        imageMetadata.setNumberOfComments(imageMetadataBeanProxy.getCommentCount(id));
 
         return imageMetadata;
     }
@@ -124,6 +149,30 @@ public class ImageMetadataBean {
         }
 
         return true;
+    }
+
+    @Timeout(value = 2, unit = ChronoUnit.SECONDS)
+    @CircuitBreaker(requestVolumeThreshold = 3)
+    @Fallback(fallbackMethod = "getCommentCountFallback")
+    public Integer getCommentCount(Integer imageId) {
+
+        log.info("Calling comments service: getting comment count.");
+
+        try {
+            return httpClient
+                    .target(baseUrl + "/v1/comments/count")
+                    .queryParam("imageId", imageId)
+                    .request().get(new GenericType<Integer>() {
+                    });
+        }
+        catch (WebApplicationException | ProcessingException e) {
+            log.severe(e.getMessage());
+            throw new InternalServerErrorException(e);
+        }
+    }
+
+    public Integer getCommentCountFallback(Integer imageId) {
+        return null;
     }
 
     private void beginTx() {

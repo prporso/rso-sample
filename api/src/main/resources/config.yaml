@@ -30,10 +30,10 @@ kumuluzee:
       disk-space-health-check:
         threshold: 100000000
         type: liveness
-  metrics:
-    web-instrumentation:
-      - name: images-endpoint
-        url-pattern: /v1/images/*
+  #metrics:
+  #  web-instrumentation:
+  #    - name: images-endpoint
+  #      url-pattern: /v1/images/*
   logs:
     config-file: '<?xml version="1.0" encoding="UTF-8"?>
                             <Configuration name="comments">
